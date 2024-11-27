@@ -1,11 +1,17 @@
 const mongoose = require("mongoose");
+const { format } = require("date-fns");
+
+const currentDate = format(new Date(), "MMM dd yyyy");
+const currentTime = format(new Date(), "hh:mm a");
+
+const timeStamp = `${currentDate} @ ${currentTime}`;
 
 const Schema = mongoose.Schema;
 
 const trnxSchema = new Schema({
   transactionType: {
     type: [String],
-    enum: ["deposit", "withdrawal", "transfer", "upgrade"],
+    enum: ["deposit", "withdraw", "transfer", "stake"],
   },
   amount: {
     type: Number,
@@ -17,22 +23,26 @@ const trnxSchema = new Schema({
   coinType: {
     type: String,
   },
-  walletAddress: {
+  network: {
     type: String,
   },
-  createdAt: {
+  timeStamp: {
     type: String,
   },
   status: {
     type: [String],
     enum: ["completed", "pending", "failed", "processing"],
+    default: "pending",
+  },
+  receiver: {
+    type: String,
   },
 });
 
 trnxSchema.statics.createTransaction = async function (userId, trnxData) {
   const User = require("./User");
   const Wallet = require("./Wallet");
-  const { coinType, createdAt, amount, transactionType, status } = trnxData;
+  const { coinType, network, amount, transactionType } = trnxData;
 
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -59,11 +69,11 @@ trnxSchema.statics.createTransaction = async function (userId, trnxData) {
 
     const newTransaction = new this({
       coinType,
-      createdAt,
+      timeStamp: timeStamp,
       amount,
+      network,
       transactionType,
       createdBy: user._id,
-      status,
     });
 
     await newTransaction.save({ session });
@@ -79,7 +89,7 @@ trnxSchema.statics.createTransaction = async function (userId, trnxData) {
 
 trnxSchema.statics.deposit = async function (userId, trnxData) {
   const User = require("./User");
-  const { coinType, amount } = trnxData;
+  const { coinType, network, amount } = trnxData;
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -89,14 +99,14 @@ trnxSchema.statics.deposit = async function (userId, trnxData) {
       await session.endSession();
       throw new Error("User not found!");
     }
-    const currentDate = new Date();
+
     const newTransaction = new this({
       coinType,
       amount,
+      network,
       transactionType: "deposit",
       createdBy: user._id,
-      status: "pending",
-      createdAt: currentDate,
+      timeStamp: timeStamp,
     });
 
     await newTransaction.save({ session });
@@ -146,14 +156,12 @@ trnxSchema.statics.withdraw = async function (userId, trnxData) {
       throw new Error("Invalid pin!");
     }
 
-    const currentDate = new Date();
     const newTransaction = new this({
       coinType,
       amount,
-      transactionType: "withdrawal",
+      transactionType: "withdraw",
       createdBy: user._id,
-      status: "pending",
-      createdAt: currentDate,
+      timeStamp: timeStamp,
       walletAddress,
     });
 
@@ -164,46 +172,6 @@ trnxSchema.statics.withdraw = async function (userId, trnxData) {
     throw error;
   } finally {
     await session.endSession();
-  }
-};
-
-trnxSchema.statics.markPaid = async function (trnxId) {
-  const Wallet = require("./Wallet");
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
-  try {
-    const userTrnx = await Transaction.findById(trnxId).session(session);
-    if (!userTrnx) {
-      throw new Error("Transaction not found");
-    }
-
-    const userWallet = await Wallet.findOne({
-      owner: userTrnx.createdBy,
-    }).session(session);
-    if (!userWallet) {
-      throw new Error("Wallet not found");
-    }
-
-    if (userWallet.balance < userTrnx.amount) {
-      userTrnx.status = "failed";
-      await userTrnx.save();
-      // throw new Error("Insufficient funds. Transaction cannot be completed!");
-    }
-
-    userWallet.balance -= userTrnx.amount;
-    await userWallet.save({ session });
-
-    userTrnx.status = "failed";
-    await userTrnx.save({ session });
-
-    await session.commitTransaction();
-    return { success: true, message: "Transaction marked as paid." };
-  } catch (error) {
-    await session.abortTransaction();
-    throw error; // Rethrow the error for handling upstream
-  } finally {
-    session.endSession();
   }
 };
 

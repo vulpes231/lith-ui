@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
+const { password } = require("bun");
 
 const Schema = mongoose.Schema;
 
@@ -11,40 +12,56 @@ const userSchema = new Schema({
     unique: true,
     required: true,
   },
-  password: {
-    type: String,
-    required: true,
-  },
-  fullname: {
-    type: String,
-    required: true,
-  },
   email: {
     type: String,
     required: true,
     unique: true,
   },
-  phone: {
-    type: String,
-  },
-  pin: {
+  country: {
     type: String,
     required: true,
   },
-  invitation: {
+  phone: {
     type: String,
   },
-  bindAddress: {
+  password: {
+    type: String,
+    required: true,
+  },
+  firstname: {
     type: String,
   },
-  homeAddress: {
+  lastname: {
     type: String,
   },
-  coinType: {
+  street: {
     type: String,
-    default: "bitcoin",
   },
-  level: {
+  state: {
+    type: String,
+  },
+  city: {
+    type: String,
+  },
+  zipcode: {
+    type: String,
+  },
+  isKycVerified: {
+    type: Boolean,
+    default: false,
+  },
+  isEmailVerified: {
+    type: Boolean,
+    default: false,
+  },
+  referral: {
+    type: String,
+  },
+  totalInvestment: {
+    type: Number,
+    default: 0,
+  },
+  totalProfit: {
     type: Number,
     default: 0,
   },
@@ -55,49 +72,67 @@ userSchema.statics.registerUser = async function (userData) {
   const session = await mongoose.startSession();
   session.startTransaction();
 
-  // console.log("Registering user with data:", userData);
-
-  const { username, password, fullname, email, homeAddress, bindAddress, pin } =
-    userData;
+  const { username, email, country, phone, password } = userData;
 
   try {
     const userExist = await this.findOne({ username }).session(session);
     if (userExist) {
-      console.log("User already exists:", username);
-      await session.abortTransaction();
-      session.endSession();
-      throw new Error("user already exists!");
+      throw new Error("Username already taken!");
+    }
+
+    const emailExist = await this.findOne({ email }).session(session);
+    if (emailExist) {
+      throw new Error("Email already registered!");
+    }
+
+    const phoneExist = await this.findOne({ phone }).session(session);
+    if (phoneExist) {
+      throw new Error("Phone number already registered!");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    // console.log("Password hashed successfully.");
 
-    const createdUser = new this({
-      username: username.toLowerCase(),
-      password: hashedPassword,
-      fullname: fullname.toLowerCase(),
-      email: email.toLowerCase(),
-      bindAddress: bindAddress || "",
-      homeAddress: homeAddress || "",
-      pin,
-    });
+    const createdUser = await this.create(
+      {
+        username: username.toLowerCase(),
+        password: hashedPassword,
+        email: email.toLowerCase(),
+        country,
+        phone,
+      },
+      { session }
+    );
 
-    await createdUser.save({ session });
+    await Wallet.create(
+      [
+        { walletName: "investment wallet", owner: createdUser._id },
+        { walletName: "deposit wallet", owner: createdUser._id },
+      ],
+      { session }
+    );
 
-    await Wallet.create({
-      address: "bc1q2yt2fr7xjfeyrh88c3qns9m6nl0px39m2ue9gm",
-      owner: createdUser._id,
-    });
+    const accessToken = jwt.sign(
+      { username: createdUser.username, userId: createdUser._id },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "5h" }
+    );
+
+    const refreshToken = jwt.sign(
+      { username: createdUser.username, userId: createdUser._id },
+      process.env.REFRESH_TOKEN_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    createdUser.refreshToken = refreshToken;
 
     await session.commitTransaction();
-    session.endSession();
-
-    return createdUser;
+    return { accessToken, refreshToken };
   } catch (error) {
     console.error("Error during user registration:", error);
     await session.abortTransaction();
+    throw new Error("Error registering new user: " + error.message);
+  } finally {
     session.endSession();
-    throw new Error("error registering new user!");
   }
 };
 
@@ -169,7 +204,17 @@ userSchema.statics.editUserInfo = async function (userId, userData) {
   const session = await mongoose.startSession();
   session.startTransaction();
 
-  const { username, email, phone, bindAddress, homeAddress } = userData;
+  const {
+    username,
+    email,
+    phone,
+    firstname,
+    lastname,
+    street,
+    state,
+    city,
+    zipcode,
+  } = userData;
   try {
     const user = await this.findById(userId).session(session);
     if (!user) {
@@ -187,11 +232,23 @@ userSchema.statics.editUserInfo = async function (userId, userData) {
     if (phone) {
       user.phone = phone;
     }
-    if (bindAddress) {
-      user.bindAddress = bindAddress;
+    if (firstname) {
+      user.firstname = firstname;
     }
-    if (homeAddress) {
-      user.homeAddress = homeAddress;
+    if (lastname) {
+      user.lastname = lastname;
+    }
+    if (street) {
+      user.street = street;
+    }
+    if (state) {
+      user.state = state;
+    }
+    if (city) {
+      user.city = city;
+    }
+    if (zipcode) {
+      user.zipcode = zipcode;
     }
 
     await user.save({ session });

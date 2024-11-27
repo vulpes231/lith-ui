@@ -38,9 +38,8 @@ notificationSchema.statics.createNotification = async function (
       receiver: user._id,
     });
 
-    // Save the new notification to the database
     const savedNotification = await newNotification.save();
-    return savedNotification; // Return the saved notification
+    return savedNotification;
   } catch (error) {
     throw new Error(`Failed to create notification: ${error.message}`);
   }

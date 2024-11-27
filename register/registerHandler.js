@@ -1,18 +1,8 @@
 const User = require("../models/User");
 
 const signupUser = async (req, res) => {
-  const {
-    username,
-    password,
-    fullname,
-    email,
-    phone,
-    address,
-    pin,
-    walletAddress,
-    invitation,
-  } = req.body;
-  if (!username || !password || !email || !fullname || !pin)
+  const { username, email, country, phone, password } = req.body;
+  if (!username || !password || !email || !country || !phone)
     return res.status(400).json({ message: "incomplete user data!" });
   try {
     const userData = {
@@ -20,18 +10,18 @@ const signupUser = async (req, res) => {
       password,
       fullname,
       email,
-      phone: phone || "",
-      homeAddress: address || "",
-      pin,
-      bindAddress: walletAddress || "",
-      invitation: invitation || "",
+      phone: phone,
     };
 
-    await User.registerUser(userData);
+    const tokens = await User.registerUser(userData);
+    const { accessToken, refreshToken } = tokens;
 
+    res.cookie("jwt", refreshToken, {
+      httpOnly: true,
+    });
     res
       .status(201)
-      .json({ message: `account created for ${username} successfully.` });
+      .json({ message: "user created successfully.", accessToken });
   } catch (error) {
     console.log(error);
     res

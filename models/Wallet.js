@@ -3,12 +3,8 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const walletSchema = new Schema({
-  address: {
+  walletName: {
     type: String,
-  },
-  coinType: {
-    type: String,
-    default: "bitcoin",
   },
   balance: {
     type: Number,
@@ -22,7 +18,7 @@ const walletSchema = new Schema({
 
 walletSchema.statics.getUserWallet = async function (userId) {
   try {
-    const userWallet = await this.findOne({ owner: userId });
+    const userWallet = await this.find({ owner: userId });
     if (!userWallet) {
       throw new Error("User wallet not found!");
     }
