@@ -36,7 +36,27 @@ const poolSchema = new Schema({
   },
 });
 
-poolSchema.statics.createPool = async function (poolData) {};
+poolSchema.statics.createPool = async function (poolData) {
+  const { plan, roi, yield, minAmount, maxAmount, maxEarnings, totalReturns } =
+    poolData;
+  try {
+    const newPackage = new this({
+      plan,
+      roi,
+      yield,
+      minAmount,
+      maxAmount,
+      maxEarnings,
+      totalReturns,
+    });
+    await newPackage.save();
+    return newPackage;
+  } catch (error) {
+    console.log(error);
+    throw new Error("Error creating packages");
+  }
+};
+
 poolSchema.statics.getPools = async function () {
   try {
     const pools = await this.find();
