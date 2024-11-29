@@ -3,9 +3,9 @@ const nodemailer = require("nodemailer");
 const Mailer = (email, message, subject) => {
   console.log(subject);
   const Transporter = nodemailer.createTransport({
-    host: "server223.web-hosting.com",
-    port: 465,
-    secure: true,
+    host: "mail.financehedge.org", //server223.web-hosting.com
+    port: 587,
+    // secure: true,
     auth: {
       user: process.env.EMAIL_ADDRESS,
       pass: process.env.EMAIL_PASSWORD,
