@@ -8,9 +8,9 @@ const signupUser = async (req, res) => {
     const userData = {
       username,
       password,
-      fullname,
+      country,
       email,
-      phone: phone,
+      phone,
     };
 
     const tokens = await User.registerUser(userData);
