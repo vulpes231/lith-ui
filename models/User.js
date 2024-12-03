@@ -74,6 +74,7 @@ userSchema.statics.registerUser = async function (userData) {
   const { username, email, country, phone, password } = userData;
 
   try {
+    // Check if user already exists by username, email, or phone
     const userExist = await this.findOne({ username }).session(session);
     if (userExist) {
       throw new Error("Username already taken!");
@@ -89,49 +90,58 @@ userSchema.statics.registerUser = async function (userData) {
       throw new Error("Phone number already registered!");
     }
 
+    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Create user (pass the user data as an array)
     const createdUser = await this.create(
-      {
-        username: username.toLowerCase(),
-        password: hashedPassword,
-        email: email.toLowerCase(),
-        country,
-        phone,
-      },
-      { session }
-    );
-
-    await Wallet.create(
       [
-        { walletName: "investment wallet", owner: createdUser._id },
-        { walletName: "deposit wallet", owner: createdUser._id },
+        {
+          username: username.toLowerCase(),
+          password: hashedPassword,
+          email: email.toLowerCase(),
+          country,
+          phone,
+        },
       ],
       { session }
     );
 
+    // Create wallets (ensure this is in the same transaction)
+    await Wallet.create(
+      [
+        { walletName: "investment wallet", owner: createdUser[0]._id },
+        { walletName: "deposit wallet", owner: createdUser[0]._id },
+      ],
+      { session }
+    );
+
+    // Generate tokens
     const accessToken = jwt.sign(
-      { username: createdUser.username, userId: createdUser._id },
+      { username: createdUser[0].username, userId: createdUser[0]._id },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "5h" }
     );
 
     const refreshToken = jwt.sign(
-      { username: createdUser.username, userId: createdUser._id },
+      { username: createdUser[0].username, userId: createdUser[0]._id },
       process.env.REFRESH_TOKEN_SECRET,
       { expiresIn: "1d" }
     );
 
-    createdUser.refreshToken = refreshToken;
+    createdUser[0].refreshToken = refreshToken;
 
+    // Commit the transaction if everything is successful
     await session.commitTransaction();
+    session.endSession();
+
     return { accessToken, refreshToken };
   } catch (error) {
+    // Abort transaction on error
     console.error("Error during user registration:", error);
     await session.abortTransaction();
-    throw new Error("Error registering new user: " + error.message);
-  } finally {
     session.endSession();
+    throw new Error("Error registering new user: " + error.message);
   }
 };
 

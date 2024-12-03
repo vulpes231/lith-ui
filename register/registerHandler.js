@@ -13,6 +13,8 @@ const signupUser = async (req, res) => {
       phone,
     };
 
+    console.log(userData);
+
     const tokens = await User.registerUser(userData);
     const { accessToken, refreshToken } = tokens;
 
