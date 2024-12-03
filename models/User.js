@@ -90,10 +90,8 @@ userSchema.statics.registerUser = async function (userData) {
       throw new Error("Phone number already registered!");
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user (pass the user data as an array)
     const createdUser = await this.create(
       [
         {
