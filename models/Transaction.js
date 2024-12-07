@@ -20,12 +20,10 @@ const trnxSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: "User",
   },
-  coinType: {
+  gateway: {
     type: String,
   },
-  network: {
-    type: String,
-  },
+
   timeStamp: {
     type: String,
   },
@@ -42,7 +40,7 @@ const trnxSchema = new Schema({
 trnxSchema.statics.createTransaction = async function (userId, trnxData) {
   const User = require("./User");
   const Wallet = require("./Wallet");
-  const { coinType, network, amount, transactionType } = trnxData;
+  const { gateway, amount, transactionType } = trnxData;
 
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -71,7 +69,7 @@ trnxSchema.statics.createTransaction = async function (userId, trnxData) {
       coinType,
       timeStamp: timeStamp,
       amount,
-      network,
+      gateway,
       transactionType,
       createdBy: user._id,
     });
@@ -89,7 +87,7 @@ trnxSchema.statics.createTransaction = async function (userId, trnxData) {
 
 trnxSchema.statics.deposit = async function (userId, trnxData) {
   const User = require("./User");
-  const { coinType, network, amount } = trnxData;
+  const { gateway, amount } = trnxData;
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
@@ -103,7 +101,7 @@ trnxSchema.statics.deposit = async function (userId, trnxData) {
     const newTransaction = new this({
       coinType,
       amount,
-      network,
+      gateway,
       transactionType: "deposit",
       createdBy: user._id,
       timeStamp: timeStamp,
