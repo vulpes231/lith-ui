@@ -74,19 +74,16 @@ poolSchema.statics.stakePool = async function (poolId, userId, amount) {
       throw new Error(`Pool plan with ID ${poolId} not found!`);
     }
 
-    // Fetch the user
     const user = await User.findOne({ _id: userId });
     if (!user) {
       throw new Error(`User with ID ${userId} not found!`);
     }
 
-    // Fetch the user's wallets
     const userWallets = await Wallet.find({ owner: user._id });
     if (userWallets.length === 0) {
       throw new Error(`No wallets found for user with ID ${userId}!`);
     }
 
-    // Find the investment wallet
     const investmentWallet = userWallets.find((wallet) =>
       wallet.name.includes("investment")
     );
@@ -96,7 +93,6 @@ poolSchema.statics.stakePool = async function (poolId, userId, amount) {
       );
     }
 
-    // Validate the stake amount
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= poolPlan.minAmount) {
       throw new Error(
@@ -104,7 +100,6 @@ poolSchema.statics.stakePool = async function (poolId, userId, amount) {
       );
     }
 
-    // Check if the user has sufficient funds
     if (investmentWallet.balance < parsedAmount) {
       throw new Error(
         `User does not have enough funds to stake. Current balance: ${investmentWallet.balance}`
