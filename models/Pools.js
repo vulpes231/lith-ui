@@ -17,10 +17,10 @@ const poolSchema = new Schema({
     type: String,
   },
   roi: {
-    type: String,
+    type: Number,
   },
   yield: {
-    type: String,
+    type: Number,
   },
   minAmount: {
     type: Number,
@@ -29,10 +29,10 @@ const poolSchema = new Schema({
     type: Number,
   },
   maxEarnings: {
-    type: String,
+    type: Number,
   },
   totalReturns: {
-    type: String,
+    type: Number,
   },
 });
 

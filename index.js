@@ -17,6 +17,7 @@ app.use(reqLogger);
 
 app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: false }));
+app.use("/uploads", express.static("uploads"));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -32,6 +33,7 @@ app.use("/wallet", require("./wallet/walletRoute"));
 app.use("/transaction", require("./transaction/trnxRoute"));
 app.use("/alert", require("./notification/alertRoute"));
 app.use("/verify", require("./verification/verifyRoute"));
+app.use("/pool", require("./pools/poolRoute"));
 
 app.use(errorLogger);
 
