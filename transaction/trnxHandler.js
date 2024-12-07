@@ -15,10 +15,10 @@ const createNewTrnx = async (req, res) => {
 
 const depositFunds = async (req, res) => {
   const userId = req.userId;
-  const { coinType, amount, network } = req.body;
+  const { amount, gateway } = req.body;
   try {
-    const trnxData = { coinType, amount, network };
-    const trnx = await Transaction.deposit(userId, trnxData);
+    const trnxData = { gateway, amount };
+    await Transaction.deposit(userId, trnxData);
     res.status(200).json({ message: "deposit submitted" });
   } catch (error) {
     console.log(error);
