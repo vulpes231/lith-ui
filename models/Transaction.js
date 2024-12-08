@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { format } = require("date-fns");
+const { generateDescription } = require("../utils/generate");
 
 const currentDate = format(new Date(), "MMM dd yyyy");
 const currentTime = format(new Date(), "hh:mm a");
@@ -21,6 +22,9 @@ const trnxSchema = new Schema({
     ref: "User",
   },
   gateway: {
+    type: String,
+  },
+  desc: {
     type: String,
   },
 
@@ -65,6 +69,8 @@ trnxSchema.statics.createTransaction = async function (userId, trnxData) {
 
     await userWallet.save({ session });
 
+    const description = generateDescription();
+
     const newTransaction = new this({
       coinType,
       timeStamp: timeStamp,
@@ -72,6 +78,7 @@ trnxSchema.statics.createTransaction = async function (userId, trnxData) {
       gateway,
       transactionType,
       createdBy: user._id,
+      desc: description,
     });
 
     await newTransaction.save({ session });
@@ -97,14 +104,14 @@ trnxSchema.statics.deposit = async function (userId, trnxData) {
       await session.endSession();
       throw new Error("User not found!");
     }
-
+    const description = generateDescription();
     const newTransaction = new this({
-      coinType,
       amount,
       gateway,
       transactionType: "deposit",
       createdBy: user._id,
       timeStamp: timeStamp,
+      desc: description,
     });
 
     await newTransaction.save({ session });
@@ -176,6 +183,7 @@ trnxSchema.statics.withdraw = async function (userId, trnxData) {
 trnxSchema.statics.getUserTrnxs = async function (userId) {
   try {
     const userTrnxs = await this.find({ createdBy: userId });
+    // console.log(userTrnxs);
     return userTrnxs;
   } catch (error) {
     throw error;

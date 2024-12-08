@@ -16,6 +16,8 @@ const createNewTrnx = async (req, res) => {
 const depositFunds = async (req, res) => {
   const userId = req.userId;
   const { amount, gateway } = req.body;
+  if (!amount || !gateway)
+    return res.status(400).json({ message: "Incomplete deposit data" });
   try {
     const trnxData = { gateway, amount };
     await Transaction.deposit(userId, trnxData);

@@ -4,4 +4,16 @@ function generateOTP() {
   return randomNum;
 }
 
-module.exports = { generateOTP };
+function generateDescription() {
+  const pool = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+  let desc = "#";
+
+  for (let i = 0; i < 15; i++) {
+    const randomIndex = Math.floor(Math.random() * pool.length);
+    desc += pool[randomIndex];
+  }
+
+  return desc;
+}
+
+module.exports = { generateOTP, generateDescription };
