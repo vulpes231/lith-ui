@@ -53,6 +53,10 @@ const userSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  twoStepAuth: {
+    type: Boolean,
+    default: false,
+  },
   referral: {
     type: String,
   },
