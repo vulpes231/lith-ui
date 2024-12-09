@@ -35,6 +35,7 @@ app.use("/alert", require("./notification/alertRoute"));
 app.use("/verifyemail", require("./verification/verifyRoute"));
 app.use("/verifyaccount", require("./verify/verifyRoute"));
 app.use("/pool", require("./pools/poolRoute"));
+app.use("/ticket", require("./tickets/ticketRoute"));
 
 app.use(errorLogger);
 

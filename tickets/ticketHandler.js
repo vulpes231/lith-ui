@@ -1,4 +1,4 @@
-import Ticket from "../models/Ticket";
+const Ticket = require("../models/Ticket");
 
 const createNewTicket = async (req, res) => {
   const userId = req.userId;
@@ -15,7 +15,7 @@ const createNewTicket = async (req, res) => {
       subject,
       message,
       priority,
-      attachment,
+      attachment: attachment || null,
     });
 
     res.status(201).json(newTicket);
@@ -70,4 +70,14 @@ const replyTicket = async (req, res) => {
   }
 };
 
-export { createNewTicket, getUserTickets, replyTicket };
+const getTicket = async (req, res) => {
+  const ticketId = req.params;
+  try {
+    const ticket = await Ticket.getTicket(ticketId);
+    res.status(200).json({ ticket });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { createNewTicket, getUserTickets, replyTicket, getTicket };

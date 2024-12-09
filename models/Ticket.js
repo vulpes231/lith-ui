@@ -42,6 +42,10 @@ const ticketSchema = new Schema(
     attachment: {
       type: String,
     },
+    status: {
+      type: String,
+      default: "open",
+    },
     lastReplied: {
       type: Date,
     },
@@ -124,6 +128,19 @@ ticketSchema.statics.userTickets = async function (userId) {
     return tickets;
   } catch (error) {
     console.log(error);
+    throw error;
+  }
+};
+
+ticketSchema.statics.getTicket = async function (ticketId) {
+  try {
+    // console.log(ticketId);
+    const ticket = await this.findById(ticketId.ticketId);
+    if (!ticket) {
+      throw new Error("Ticket not found!");
+    }
+    return ticket;
+  } catch (error) {
     throw error;
   }
 };
