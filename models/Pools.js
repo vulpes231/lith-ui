@@ -67,25 +67,30 @@ poolSchema.statics.getPools = async function () {
   }
 };
 
-poolSchema.statics.stakePool = async function (poolId, userId, amount) {
+poolSchema.statics.stakePool = async function (userId, investData) {
+  const { walletName, planId, amount } = investData;
+  const session = await mongoose.startSession();
+
   try {
-    const poolPlan = await this.findOne({ _id: poolId });
+    session.startTransaction();
+
+    const poolPlan = await this.findOne({ _id: planId }).session(session);
     if (!poolPlan) {
-      throw new Error(`Pool plan with ID ${poolId} not found!`);
+      throw new Error(`Pool plan with ID ${planId} not found!`);
     }
 
-    const user = await User.findOne({ _id: userId });
+    const user = await User.findOne({ _id: userId }).session(session);
     if (!user) {
       throw new Error(`User with ID ${userId} not found!`);
     }
 
-    const userWallets = await Wallet.find({ owner: user._id });
+    const userWallets = await Wallet.find({ owner: user._id }).session(session);
     if (userWallets.length === 0) {
       throw new Error(`No wallets found for user with ID ${userId}!`);
     }
 
-    const investmentWallet = userWallets.find((wallet) =>
-      wallet.name.includes("investment")
+    const investmentWallet = userWallets.find(
+      (wallet) => wallet.name === walletName
     );
     if (!investmentWallet) {
       throw new Error(
@@ -102,21 +107,36 @@ poolSchema.statics.stakePool = async function (poolId, userId, amount) {
 
     if (investmentWallet.balance < parsedAmount) {
       throw new Error(
-        `User does not have enough funds to stake. Current balance: ${investmentWallet.balance}`
+        `Insufficient balance. Current balance: ${investmentWallet.balance}`
       );
     }
 
-    const newTransaction = await Transaction.create({
-      coinType: "invest",
-      amount: parsedAmount,
-      network: poolPlan.plan,
-      transactionType: "stake",
-      createdBy: user._id,
-      timeStamp: timeStamp,
-    });
+    investmentWallet.balance -= parsedAmount;
 
-    return newTransaction;
+    await investmentWallet.save({ session });
+
+    const timeStamp = new Date();
+    const newTransaction = await Transaction.create(
+      [
+        {
+          gateway: walletName,
+          amount: parsedAmount,
+          network: poolPlan.plan,
+          transactionType: "invest",
+          createdBy: user._id,
+          timeStamp: timeStamp,
+        },
+      ],
+      { session }
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return newTransaction[0];
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.error(error);
     throw new Error("Error staking pool: " + error.message);
   }

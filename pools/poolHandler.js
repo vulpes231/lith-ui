@@ -34,9 +34,14 @@ const getPoolPlans = async (req, res) => {
 
 const investPool = async (req, res) => {
   const userId = req.userId;
-  const { poolId, amount } = req.body;
+  const { wallet, planId, amount } = req.body;
   try {
-    await Pools.stakePool(poolId, userId, amount);
+    const investData = {
+      walletName: wallet,
+      planId,
+      amount,
+    };
+    await Pools.stakePool(userId, investData);
     res.status(200).json({ message: "Position submitted" });
   } catch (error) {
     console.log(error);

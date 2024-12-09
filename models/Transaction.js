@@ -12,7 +12,7 @@ const Schema = mongoose.Schema;
 const trnxSchema = new Schema({
   transactionType: {
     type: [String],
-    enum: ["deposit", "withdraw", "transfer", "stake"],
+    enum: ["deposit", "withdraw", "transfer", "invest"],
   },
   amount: {
     type: Number,
