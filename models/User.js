@@ -53,7 +53,7 @@ const userSchema = new Schema({
     type: Boolean,
     default: false,
   },
-  twoStepAuth: {
+  twofa: {
     type: Boolean,
     default: false,
   },
