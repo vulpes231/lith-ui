@@ -11,9 +11,10 @@ const verifyJWT = (req, res, next) => {
 
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
     if (err) {
-      console.error("Token verification error:", err.message); // Log the error
+      console.error("Token verification error:", err.message);
       return res.status(400).json({ message: "Bad token!" });
     }
+    req.isAdmin = decoded.isAdmin;
     req.user = decoded.username;
     req.userId = decoded.userId;
     next();

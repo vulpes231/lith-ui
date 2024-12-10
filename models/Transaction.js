@@ -33,7 +33,7 @@ const trnxSchema = new Schema({
   },
   status: {
     type: [String],
-    enum: ["completed", "pending", "failed", "processing"],
+    enum: ["completed", "pending", "failed"],
     default: "pending",
   },
   receiver: {

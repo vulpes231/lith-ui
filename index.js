@@ -21,6 +21,8 @@ app.use("/uploads", express.static("uploads"));
 app.use(express.json());
 app.use(cookieParser());
 
+app.use("/adminauth", require("./adminAPI/login/authRoute"));
+app.use("/newadmin", require("./adminAPI/signup/createRoute"));
 app.use("/signup", require("./register/registerRoute"));
 app.use("/signin", require("./auth/loginRoute"));
 app.use("/send", require("./sendmail/sendMailRoute"));
@@ -36,6 +38,11 @@ app.use("/verifyemail", require("./verification/verifyRoute"));
 app.use("/verifyaccount", require("./verify/verifyRoute"));
 app.use("/pool", require("./pools/poolRoute"));
 app.use("/ticket", require("./tickets/ticketRoute"));
+
+//admin routes
+
+app.use("/usercontrol", require("./adminAPI/users/controlRoute"));
+app.use("/invest", require("./adminAPI/pools/investRoute"));
 
 app.use(errorLogger);
 
