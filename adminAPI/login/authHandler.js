@@ -2,11 +2,10 @@ const Admin = require("../../models/Admin");
 
 const loginAdmin = async (req, res) => {
   const { username, password } = req.body;
-  const isAdmin = req.isAdmin;
+
   if (!username || !password)
     return res.status(400).json({ message: "username and password required!" });
 
-  if (!isAdmin) return res.status(403).json({ message: "forbidden access!" });
   try {
     const loginData = { username, password };
     const tokens = await Admin.auth(loginData);

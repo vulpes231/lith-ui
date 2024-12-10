@@ -1,5 +1,6 @@
 const { mongoose, Schema } = require("mongoose");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const adminSchema = new Schema({
   username: {

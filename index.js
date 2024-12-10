@@ -40,12 +40,10 @@ app.use("/pool", require("./pools/poolRoute"));
 app.use("/ticket", require("./tickets/ticketRoute"));
 
 //admin routes
-
 app.use("/usercontrol", require("./adminAPI/users/controlRoute"));
 app.use("/invest", require("./adminAPI/pools/investRoute"));
 
 app.use(errorLogger);
-
 mongoose.connection.once("connected", () => {
   app.listen(PORT, () =>
     console.log(`Server started on http://localhost:${PORT}`)
