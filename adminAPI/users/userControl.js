@@ -3,7 +3,7 @@ const User = require("../../models/User");
 const getUserProfile = async (req, res) => {
   const isAdmin = req.isAdmin;
   if (!isAdmin) return res.status(403).json({ message: "forbidden access" });
-  const userId = req.params;
+  const { userId } = req.params;
   try {
     const userInfo = await User.findOne({ _id: userId });
 

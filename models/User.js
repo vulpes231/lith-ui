@@ -68,6 +68,10 @@ const userSchema = new Schema({
     type: Number,
     default: 0,
   },
+  documentSubmitted: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 userSchema.statics.registerUser = async function (userData) {
