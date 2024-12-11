@@ -42,6 +42,7 @@ app.use("/ticket", require("./tickets/ticketRoute"));
 //admin routes
 app.use("/usercontrol", require("./adminAPI/users/controlRoute"));
 app.use("/invest", require("./adminAPI/pools/investRoute"));
+app.use("/trnxs", require("./adminAPI/trnxs/trnxRoute"));
 
 app.use(errorLogger);
 mongoose.connection.once("connected", () => {
