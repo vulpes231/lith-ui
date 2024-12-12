@@ -35,6 +35,8 @@ const getPoolPlans = async (req, res) => {
 const investPool = async (req, res) => {
   const userId = req.userId;
   const { wallet, planId, amount } = req.body;
+
+  // console.log(req.body);
   try {
     const investData = {
       walletName: wallet,
@@ -49,4 +51,15 @@ const investPool = async (req, res) => {
   }
 };
 
-module.exports = { investPool, getPoolPlans, addNewPool };
+const getInvestments = async (req, res) => {
+  const userId = req.userId;
+  try {
+    const investments = await Pools.getUserPools(userId);
+    res.status(200).json({ investments });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { investPool, getPoolPlans, addNewPool, getInvestments };

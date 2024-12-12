@@ -4,6 +4,7 @@ const Wallet = require("./Wallet");
 const Transaction = require("./Transaction");
 
 const { format } = require("date-fns");
+const { generateDescription } = require("../utils/generate");
 
 const currentDate = format(new Date(), "MMM dd yyyy");
 const currentTime = format(new Date(), "hh:mm a");
@@ -89,8 +90,10 @@ poolSchema.statics.stakePool = async function (userId, investData) {
       throw new Error(`No wallets found for user with ID ${userId}!`);
     }
 
+    // console.log(userWallets);
+
     const investmentWallet = userWallets.find(
-      (wallet) => wallet.name === walletName
+      (wallet) => wallet.walletName === walletName
     );
     if (!investmentWallet) {
       throw new Error(
@@ -115,7 +118,6 @@ poolSchema.statics.stakePool = async function (userId, investData) {
 
     await investmentWallet.save({ session });
 
-    const timeStamp = new Date();
     const newTransaction = await Transaction.create(
       [
         {
@@ -125,6 +127,9 @@ poolSchema.statics.stakePool = async function (userId, investData) {
           transactionType: "invest",
           createdBy: user._id,
           timeStamp: timeStamp,
+          username: user.username,
+          status: "open",
+          desc: generateDescription(),
         },
       ],
       { session }
@@ -139,6 +144,28 @@ poolSchema.statics.stakePool = async function (userId, investData) {
     session.endSession();
     console.error(error);
     throw new Error("Error staking pool: " + error.message);
+  }
+};
+
+poolSchema.statics.getUserPools = async function (userId) {
+  try {
+    const userPools = await Transaction.find({ createdBy: userId });
+
+    if (userPools.length < 0) {
+      throw new Error("You have no investments.");
+    }
+
+    // console.log(userPools);
+
+    const investments = userPools.filter(
+      (pool) => pool.transactionType[0] === "invest"
+    );
+
+    console.log("investments", investments);
+
+    return investments;
+  } catch (error) {
+    throw error;
   }
 };
 
