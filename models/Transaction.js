@@ -19,6 +19,10 @@ const trnxSchema = new Schema({
   amount: {
     type: Number,
   },
+  yield: {
+    type: Number,
+    default: 0,
+  },
   createdBy: {
     type: Schema.Types.ObjectId,
     ref: "User",
